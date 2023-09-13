@@ -1,0 +1,198 @@
+{
+    "0": {
+        "name": "Atlanta Hawks",
+        "legue": "NBA"
+    },
+    "1": {
+        "name": "Bostom Celtics",
+        "legue": "NBA"
+    },
+    "2": {
+        "name": "Brooklyn Nets",
+        "legue": "NBA"
+    },
+    "3": {
+        "name": "New York Knicks",
+        "legue": "NBA"
+    },
+    "4": {
+        "name": "Philadelphia 76ers",
+        "legue": "NBA"
+    },
+    "5": {
+        "name": "Toronto Raptors",
+        "legue": "NBA"
+    },
+    "6": {
+        "name": "Golden State Warriors",
+        "legue": "NBA"
+    },
+    "7": {
+        "name": "LA Clippers",
+        "legue": "NBA"
+    },
+    "8": {
+        "name": "Los Angeles Lakers",
+        "legue": "NBA"
+    },
+    "9": {
+        "name": "Phoenix Suns",
+        "legue": "NBA"
+    },
+    "10": {
+        "name": "Sacramento Kings",
+        "legue": "NBA"
+    },
+    "11": {
+        "name": "Chicago Bulls",
+        "legue": "NBA"
+    },
+    "12": {
+        "name": "Cleveland Cavaliers",
+        "legue": "NBA"
+    },
+    "13": {
+        "name": "Detroit Pistons",
+        "legue": "NBA"
+    },
+    "14": {
+        "name": "Indiana Pacers",
+        "legue": "NBA"
+    },
+    "15": {
+        "name": "Milwaukee Bucks",
+        "legue": "NBA"
+    },
+    "16": {
+        "name": "Charlotte Hornets",
+        "legue": "NBA"
+    },
+    "17": {
+        "name": "Miami Heat",
+        "legue": "NBA"
+    },
+    "18": {
+        "name": "Orlando Magic",
+        "legue": "NBA"
+    },
+    "19": {
+        "name": "Washington Wizards",
+        "legue": "NBA"
+    },
+    "20": {
+        "name": "Denver Nuggets",
+        "legue": "NBA"
+    },
+    "21": {
+        "name": "Minnesota Timberwolves",
+        "legue": "NBA"
+    },
+    "22": {
+        "name": "Oklahoma City Thunder",
+        "legue": "NBA"
+    },
+    "23": {
+        "name": "Portland Trail Blazers",
+        "legue": "NBA"
+    },
+    "24": {
+        "name": "Utah Jazz",
+        "legue": "NBA"
+    },
+    "25": {
+        "name": "Dallas Mavericks",
+        "legue": "NBA"
+    },
+    "26": {
+        "name": "Houston Rockets",
+        "legue": "NBA"
+    },
+    "27": {
+        "name": "Memphis Grizzlies",
+        "legue": "NBA"
+    },
+    "28": {
+        "name": "New Orleans Pelicans",
+        "legue": "NBA"
+    },
+    "29": {
+        "name": "San Antonio Spurs",
+        "legue": "NBA"
+    },
+    "30": {
+        "name": "Bauru Basket",
+        "legue": "NBB"
+    },
+    "31": {
+        "name": "Botafogo",
+        "legue": "NBB"
+    },
+    "32": {
+        "name": "BRB/Brasilia",
+        "legue": "NBB"
+    },
+    "33": {
+        "name": "Caxias do Sul",
+        "legue": "NBB"
+    },
+    "34": {
+        "name": "Cerrado",
+        "legue": "NBB"
+    },
+    "35": {
+        "name": "Corinthians",
+        "legue": "NBB"
+    },
+    "36": {
+        "name": "Flamengo",
+        "legue": "NBB"
+    },
+    "37": {
+        "name": "Fortaleza B. C.",
+        "legue": "NBB"
+    },
+    "38": {
+        "name": "Sesi Franca",
+        "legue": "NBB"
+    },
+    "39": {
+        "name": "Minas",
+        "legue": "NBB"
+    },
+    "40": {
+        "name": "Mogi",
+        "legue": "NBB"
+    },
+    "41": {
+        "name": "Pato Basquete",
+        "legue": "NBB"
+    },
+    "42": {
+        "name": "Paulistano",
+        "legue": "NBB"
+    },
+    "43": {
+        "name": "Pinheiros",
+        "legue": "NBB"
+    },
+    "44": {
+        "name": "COOP/São José",
+        "legue": "NBB"
+    },
+    "45": {
+        "name": "São Paulo",
+        "legue": "NBB"
+    },
+    "46": {
+        "name": "União Corinthians",
+        "legue": "NBB"
+    },
+    "47": {
+        "name": "Unifacisa",
+        "legue": "NBB"
+    },
+    "48": {
+        "name": "Vasco da Gama",
+        "legue": "NBB"
+    }
+}
