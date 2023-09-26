@@ -2,97 +2,62 @@ import json
 from models import Team
 from request import Request
 from fastapi import FastAPI, HTTPException, status, Response, Path
+from typing import Optional
 import requests
 
-# get value to file db.json
-with open('db.json') as db:
-    teams = json.load(db)
+from bancoDeDados import listar_times, buscar_id, buscar_nome, listar_ligas
 
 # create app FASTAPI
-app = FastAPI()
+app2 = FastAPI()
 
 PREFIX_API_BASQUETE: str = '/api/v1/basquete'
 PREFIX_API_FUTEBOL: str = '/api/v1/futebol'
 
+# Teams
+
 # GET
 
-@app.get(PREFIX_API_BASQUETE + "/teams")
+
+@app2.get(PREFIX_API_BASQUETE + "/teams")
 async def get_all_teams():
     '''
     getting all teams in file db.json      
     '''
-    return teams
+    lista_times = listar_times()
+
+    return lista_times
 
 
-@app.get(PREFIX_API_BASQUETE + "/teams/id/{team_id}")
+@app2.get(PREFIX_API_BASQUETE + "/teams/id/{team_id}")
 async def get_team_id(team_id: str):
     '''
     getting one teams in file db.json by your id      
     '''
-    try:
-        team = teams[team_id]
-        return {"message": team}
-    except KeyError:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND, detail='Team not found!')
+    team = buscar_id(team_id, 'times_de_basquete')
+
+    if team != None:
+        return team
+    
+    raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail='Team not found!')
 
 
-@app.get(PREFIX_API_BASQUETE + "/teams/name/{team_name}")
-async def get_team_name(team_name: str):
+@app2.get(PREFIX_API_BASQUETE + "/teams/name/{league_name}")
+async def get_league_name(league_name: str):
     '''
-    getting one teams in file db.json by this key value "name"      
+    getting one teams in file db.json by your id      
     '''
-    try:
-        # goes through all teams
-        for key in teams:
-            # transforms the string key value "name" to everything lowercase and without spaces
-            name_team = teams[key]["name"].lower().replace(" ", "")
+    leagues_name = buscar_nome(league_name, 'times_de_basquete')
 
-            # transforms the string param to everything lowercase and without spaces
-            param_team = team_name.lower().replace(" ", "")
-
-            # verify if the param have in name of team
-            if param_team in name_team:
-                return {"message": teams[key]}
-
-    except KeyError:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND, detail='Team not found!')
+    if leagues_name != None and leagues_name != []:
+        return list(leagues_name)
+    
+    raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail='Team not found!')
 
 
-@app.get(PREFIX_API_BASQUETE + "/teams/legue/{legue_name}")
-async def get_all_legue(legue_name: str):
+@app2.get(PREFIX_API_BASQUETE + "/teams/analytics/")
+async def get_analytics(league_name: str, season: str):
     '''
-    getting all teams that have in one specif league in file db.json by this key value "name"      
-    '''
-
-    # the list that will contain the teams
-    teams_legue = []
-
-    try:
-        # goes through all teams
-        for key in teams:
-            # transforms the string key value "league" to everything lowercase and without spaces
-            legue_team = teams[key]["legue"].lower()
-
-            # transforms the string param to everything lowercase and without spaces
-            param_legue = legue_name.lower().replace(" ", "")
-
-            # verify if the param is equal the league team, if true. Append in list
-            if param_legue == legue_team:
-                teams_legue.append(teams[key])
-
-        return {"message": teams_legue}
-
-    except KeyError:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND, detail='Team not found!')
-
-
-@app.get(PREFIX_API_BASQUETE + "/teams/analytics/")
-async def get_all_legue(team_name: str, season: str):
-    '''
-    from the "team_name" and "season" parameters. This function takes data from a team in a season. 
+    from the "league_name" and "season" parameters. This function takes data from a team in a season. 
     This is done in 3 steps. 
         1st: It checks if the team requested in the parameter is in the json file, if it doesn't have it, it returns 404. 
         2nd: If it does, it consumes a basketball api that returns the id of the league the team plays in and the id of the team researched. 
@@ -106,28 +71,15 @@ async def get_all_legue(team_name: str, season: str):
     name_correct = None
     have_database = False
 
-    # goes through all teams
-    for key in teams:
-        # transforms the string key value "name" to everything lowercase and without spaces
-        name_team = teams[key]["name"].lower().replace(" ", "")
-
-        # transforms the string param to everything lowercase and without spaces
-        param_team = team_name.lower().replace(" ", "")
-
-        # verify if the param have in name of team. 
-        if param_team in name_team:
-            have_database = True
-            name_correct = teams[key]["name"]
-
+    leagues_name = buscar_nome(league_name)
+    
     # if it is not in the db it returns a 404 error
-    if not have_database:
-        return HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND, detail='Team not found!')
+    if leagues_name == None or leagues_name == []:
+        return HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail='Team not found!')
 
+    params = {"search": leagues_name[0][2]}
+    
     try:
-        # set the queries to the first request
-        params = {"search": name_correct}
-
         # creates the request object
         request_team = Request()
 
@@ -159,8 +111,8 @@ async def get_all_legue(team_name: str, season: str):
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND, detail='Team not found!')
 
-
-@app.get(PREFIX_API_FUTEBOL + "/teams")
+   
+@app2.get(PREFIX_API_FUTEBOL + "/teams")
 async def get_all_teams_futebol():
     '''
     getting all teams in  API diego     
@@ -170,55 +122,61 @@ async def get_all_teams_futebol():
     teams = response.json()
     return teams
 
-# POST
+# Legues
 
+# GET
 
-@app.post(PREFIX_API_BASQUETE + "/teams/add")
-async def post_team(team: Team):
+@app2.get(PREFIX_API_BASQUETE + "/leagues")
+async def get_all_leagues():
     '''
-    Create a new team with the name and league model. And the key is all teams plus 1
+    getting all teams in file db.json      
     '''
+    lista_ligas = listar_ligas()
 
-    id = len(teams) + 1
-    if id not in teams:
-        teams[id] = team
-        return team, Response(status_code=status.HTTP_201_CREATED)
-    else:
-        raise HTTPException(status_code=status.HTTP_409_CONFLICT,
-                            detail=f'The team with id {id} already exists!')
+    return lista_ligas
 
 
-# PUT
-
-@app.put(PREFIX_API_BASQUETE + '/teams/change/{team_id}')
-async def put_team(team_id: str, team: Team):
+@app2.get(PREFIX_API_BASQUETE + "/leagues/id/{leagues_id}")
+async def get_league_id(league_id: str):
     '''
-    Update the team body according to the team and league model, and the id, passed through the parameter
+    getting one teams in file db.json by your id      
     '''
-    if team_id in teams:
-        teams[team_id] = team
-        return team
-    else:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND, detail=f'Team not found!')
+    league = buscar_id(league_id, 'ligas_de_basquete')
 
-# DELETE
+    if league != None:
+        return league
+    
+    raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail='League not found!')
 
 
-@app.delete(PREFIX_API_BASQUETE + "/teams/delete/{team_id}")
-async def delete_team(team_id: str):
+@app2.get(PREFIX_API_BASQUETE + "/league/name/{league_name}")
+async def get_league_name(league_name: str):
     '''
-    Delete the team according to the id passed in the parameters
+    getting one teams in file db.json by your id      
     '''
-    if team_id in teams:
-        del teams[team_id]
-        return Response(status_code=status.HTTP_204_NO_CONTENT)
-    else:
-        raise HTTPException(
-            status_code=status.HTTP_409_CONFLICT, detail='Team not found!')
+    leagues_name = buscar_nome(league_name, 'ligas_de_basquete')
+
+    if leagues_name != None and leagues_name != []:
+        return list(leagues_name)
+    
+    raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail='League not found!')
+
+@app2.get(PREFIX_API_BASQUETE + "/league/teams")
+async def get_league_name(league_id: Optional[str] = None, league_name: Optional[str] = None):
+    if league_id == None and league_name == None:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail='The two query are empty!')
+    
+    if league_id != None:
+        ...
+    elif league_name != None:
+        ...
+    # if leagues_name != None and leagues_name != []:
+    #     return list(leagues_name)
+    
+    # raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail='League not found!')
 
 
 if __name__ == '__main__':
     import uvicorn
-    uvicorn.run('main:app', host="0.0.0.0", port=8001,
-                log_level="info", reload=True)
+    uvicorn.run('main:app2', host="127.0.0.1", port=8001, log_level="info", reload=True)
+
