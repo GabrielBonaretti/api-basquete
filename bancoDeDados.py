@@ -1,27 +1,5 @@
-# def inserir_dados():
-#     connection = conectar()
-
-#     with open('db.json') as db:
-#         data = json.load(db)
-
-#     connection.execute(f"INSERT INTO ligas_de_basquete (nome) VALUES ('NBA')")
-#     connection.execute(f"INSERT INTO ligas_de_basquete (nome) VALUES ('NBB')")
-
-#     for item in data:
-
-#         if data[item]['legue'] == 'NBA':
-#             legue_id = 1
-#         else:
-#             legue_id = 2
-        
-#         connection.execute(f"INSERT INTO times_de_basquete (liga_id, nome) VALUES ({legue_id}, '{data[item]['name']}')")
-#     connection.commit()
-
-#     desconectar(connection, cursor)
-
 import sqlite3
-import json
-from models import League
+from models import League, Team
 
 def conectar():
     connection = sqlite3.connect('psqlite3.db')
@@ -57,35 +35,22 @@ def listar_times():
     desconectar(connection, cursor)
     return times
 
-def buscar_id(id, table):
+def buscar(table , id = None, nome = None):
     connection = conectar()
     cursor = connection.cursor()
-
-    try:
+    
+    if id:
         cursor.execute(f'SELECT * FROM {table} WHERE id == {id}')
         search_time = cursor.fetchall()
         return search_time
-    
-    except:
-       print("error")
 
-    finally:
-        desconectar(connection, cursor)
 
-def buscar_nome(nome, table):
-    connection = conectar()
-    cursor = connection.cursor()
-
-    try:
+    elif nome:
         cursor.execute(f"SELECT * FROM {table} WHERE nome LIKE '%{nome}%'")
         search_time = cursor.fetchall()
         return search_time
-    
-    except:
-       print("error")
 
-    finally:
-        desconectar(connection, cursor)
+    desconectar(connection, cursor)
 
 def listar_ligas():
     connection = conectar()
@@ -118,25 +83,86 @@ def listar_times_liga(search, type_search):
 
 # INSERT
 
-def inserir_time(league: League):
+def inserir_time(team: Team):
+    connection = conectar()
+    cursor = connection.cursor()
+    cursor.execute(f"INSERT INTO times_de_basquete (liga_id, nome) VALUES ({team.liga_id}, '{team.nome}');")
+    connection.commit()
+
+    if cursor.rowcount == 1:
+        create = True
+    else:
+        create = False
+    
+    desconectar(connection, cursor)
+    
+    return create
+
+def inserir_liga(league: League):
     connection = conectar()
     cursor = connection.cursor()
     cursor.execute(f"INSERT INTO ligas_de_basquete (nome) VALUES ('{league.nome}');")
     connection.commit()
+
+    if cursor.rowcount == 1:
+        create = True
+    else:
+        create = False
+    
+    desconectar(connection, cursor)
+    
+    return create
+
+# UPDATE
+
+def upadate_times(team):
+
+    connection = conectar()
+    cursor = connection.cursor()
+
+    cursor.execute(f"UPDATE times_de_basquete SET liga_id == {team.liga_id}, nome = '{team.nome}' WHERE id == {team.id}")
+    connection.commit()
+
+    if cursor.rowcount == 1:
+        updated = True
+    else:
+        updated = False
+    
     desconectar(connection, cursor)
 
-# def inserir_liga():
-#     connection = conectar()
-#     cursor = connection.cursor()
+    return updated
 
-#     nome = input("Informe o nome da liga: ")
+def upadate_ligas(league):
+    connection = conectar()
+    cursor = connection.cursor()
 
-#     cursor.execute(f"INSERT INTO ligas_de_basquete (nome) VALUES ('{nome}');")
-#     connection.commit()
+    cursor.execute(f"UPDATE ligas_de_basquete SET nome = '{league.nome}' WHERE id == {league.id}")
+    connection.commit()
 
-#     if cursor.rowcount == 1:
-#         print("A liga foi inserida no banco de dados.")
-#     else:
-#         print("A liga não foi inserida no banco de dados.")
+    if cursor.rowcount == 1:
+        updated = True
+    else:
+        updated = False
+    
+    desconectar(connection, cursor)
+    
+    return updated
 
-#     desconectar(connection, cursor)
+# DELETE
+
+def delete(table, id):
+    connection = conectar()
+    cursor = connection.cursor()
+    
+    cursor.execute(f"DELETE FROM {table} WHERE id == {id}")
+
+    connection.commit()
+
+    if cursor.rowcount == 1:
+        deleted = True
+    else:
+        deleted = False
+
+    desconectar(connection, cursor)
+    
+    return deleted

@@ -5,10 +5,10 @@ from fastapi import FastAPI, HTTPException, status, Response, Path
 from typing import Optional
 import requests
 
-from bancoDeDados import listar_times, buscar_id, buscar_nome, listar_ligas, listar_times_liga, inserir_time
+from bancoDeDados import listar_times, buscar, listar_ligas, listar_times_liga, inserir_liga, upadate_ligas, delete, inserir_time, upadate_times
 
 # create app FASTAPI
-app2 = FastAPI()
+app = FastAPI()
 
 PREFIX_API_BASQUETE: str = '/api/v1/basquete'
 PREFIX_API_FUTEBOL: str = '/api/v1/futebol'
@@ -17,7 +17,7 @@ PREFIX_API_FUTEBOL: str = '/api/v1/futebol'
 
 # GET
 
-@app2.get(PREFIX_API_BASQUETE + "/teams")
+@app.get(PREFIX_API_BASQUETE + "/teams")
 async def get_all_teams():
     '''
     getting all teams in file db.json      
@@ -26,34 +26,22 @@ async def get_all_teams():
 
     return lista_times
 
+@app.get(PREFIX_API_BASQUETE + "/teams/search/")
+async def get_team(team_id: Optional[str] = None, team_name: Optional[str] = None):
 
-@app2.get(PREFIX_API_BASQUETE + "/teams/id/{team_id}")
-async def get_team_id(team_id: str):
-    '''
-    getting one teams in file db.json by your id      
-    '''
-    team = buscar_id(team_id, 'times_de_basquete')
+    if team_id:
+        team = buscar(id=team_id, table='times_de_basquete')
+    elif team_name:
+        team = buscar(nome=team_name, table='times_de_basquete')
+    else:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail='The two fields query are empty')
 
-    if team != None:
+    if team != None or team != []:
         return team
     
     raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail='Team not found!')
 
-
-@app2.get(PREFIX_API_BASQUETE + "/teams/name/{league_name}")
-async def get_league_name(league_name: str):
-    '''
-    getting one teams in file db.json by your id      
-    '''
-    leagues_name = buscar_nome(league_name, 'times_de_basquete')
-
-    if leagues_name != None and leagues_name != []:
-        return list(leagues_name)
-    
-    raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail='Team not found!')
-
-
-@app2.get(PREFIX_API_BASQUETE + "/teams/analytics/")
+@app.get(PREFIX_API_BASQUETE + "/teams/analytics/")
 async def get_analytics(league_name: str, season: str):
     '''
     from the "league_name" and "season" parameters. This function takes data from a team in a season. 
@@ -67,9 +55,6 @@ async def get_analytics(league_name: str, season: str):
     '''
 
     #
-    name_correct = None
-    have_database = False
-
     leagues_name = buscar_nome(league_name)
     
     # if it is not in the db it returns a 404 error
@@ -111,7 +96,7 @@ async def get_analytics(league_name: str, season: str):
             status_code=status.HTTP_404_NOT_FOUND, detail='Team not found!')
 
    
-@app2.get(PREFIX_API_FUTEBOL + "/teams")
+@app.get(PREFIX_API_FUTEBOL + "/teams")
 async def get_all_teams_futebol():
     '''
     getting all teams in  API diego     
@@ -121,12 +106,57 @@ async def get_all_teams_futebol():
     teams = response.json()
     return teams
 
+# POST
+
+@app.post(PREFIX_API_BASQUETE + "/teams/add")
+async def post_team(team: Team):
+    '''
+    Create a new team with the name and league model. And the key is all teams plus 1
+    '''
+
+    create = inserir_time(team)
+    
+    if create:
+        return Response(status_code=status.HTTP_201_CREATED)
+    else:
+        raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail=f'The team with id {league.id} already exists!')
+
+
+# PUT
+
+@app.put(PREFIX_API_BASQUETE + '/teams/change')
+async def put_team(team: Team):
+    '''
+    Update the league body according to the league and league model, and the id, passed through the parameter
+    '''
+    update = upadate_times(team)
+
+    if update:
+        return team
+    else:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=F'League not found!')
+
+# DELETE
+
+@app.delete(PREFIX_API_BASQUETE + '/teams/remove')
+async def del_team(team_id: int):
+    '''
+    Update the league body according to the league and league model, and the id, passed through the parameter
+    '''
+    
+    deleted = delete(table='times_de_basquete', id=team_id)
+    
+    if deleted:
+        return Response(status_code=status.HTTP_204_NO_CONTENT)
+    else:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f'league not found!')
+
 
 # Legues
 
 # GET
 
-@app2.get(PREFIX_API_BASQUETE + "/leagues")
+@app.get(PREFIX_API_BASQUETE + "/leagues")
 async def get_all_leagues():
     '''
     getting all teams in file db.json      
@@ -135,34 +165,22 @@ async def get_all_leagues():
 
     return lista_ligas
 
+@app.get(PREFIX_API_BASQUETE + "/leagues/search/")
+async def get_league(league_id: Optional[str] = None, league_name: Optional[str] = None):
 
-@app2.get(PREFIX_API_BASQUETE + "/leagues/id/{leagues_id}")
-async def get_league_id(league_id: str):
-    '''
-    getting one teams in file db.json by your id      
-    '''
-    league = buscar_id(league_id, 'ligas_de_basquete')
+    if league_id:
+        league = buscar(id=league_id, table='ligas_de_basquete')
+    elif league_name:
+        league = buscar(nome=league_name, table='ligas_de_basquete')
+    else:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail='The two fields query are empty')
 
-    if league != None:
+    if league != None or league != []:
         return league
     
     raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail='League not found!')
 
-
-@app2.get(PREFIX_API_BASQUETE + "/league/name/{league_name}")
-async def get_league_name(league_name: str):
-    '''
-    getting one teams in file db.json by your id      
-    '''
-    leagues_name = buscar_nome(league_name, 'ligas_de_basquete')
-
-    if leagues_name != None and leagues_name != []:
-        return list(leagues_name)
-    
-    raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail='League not found!')
-
-
-@app2.get(PREFIX_API_BASQUETE + "/league/teams")
+@app.get(PREFIX_API_BASQUETE + "/leagues/teams")
 async def get_league_name(league_id: Optional[str] = None, league_name: Optional[str] = None):
     if league_id == None and league_name == None:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail='The two query are empty!')
@@ -179,37 +197,50 @@ async def get_league_name(league_id: Optional[str] = None, league_name: Optional
     
 # POST
 
-@app2.post(PREFIX_API_BASQUETE + "/league/add")
-async def post_team(league: League):
+@app.post(PREFIX_API_BASQUETE + "/leagues/add")
+async def post_league(league: League):
     '''
     Create a new team with the name and league model. And the key is all teams plus 1
     '''
 
-    if league:
-        inserir_time(league)
+    create = inserir_liga(league)
+    
+    if create:
         return Response(status_code=status.HTTP_201_CREATED)
     else:
-        raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail=f'The team with id {id} already exists!')
+        raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail=f'The team with id {league.id} already exists!')
 
 
 # PUT
 
-@app2.put(PREFIX_API_BASQUETE + '/league/change')
-async def put_league(league: League, league_id: Optional[str] = None, league_name: Optional[str] = None):
+@app.put(PREFIX_API_BASQUETE + '/leagues/change')
+async def put_league(league: League):
     '''
     Update the league body according to the league and league model, and the id, passed through the parameter
     '''
-    if league and league_id:
-        return league
-    elif league and league_name:
+    update = upadate_ligas(league)
+
+    if update:
         return league
     else:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND, detail=f'league not found!')
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=F'League not found!')
 
+# DELETE
 
+@app.delete(PREFIX_API_BASQUETE + '/leagues/remove')
+async def del_league(league_id: int):
+    '''
+    Update the league body according to the league and league model, and the id, passed through the parameter
+    '''
+    
+    deleted = delete(table='ligas_de_basquete', id=league_id)
+    
+    if deleted:
+        return Response(status_code=status.HTTP_204_NO_CONTENT)
+    else:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f'league not found!')
 
 if __name__ == '__main__':
     import uvicorn
-    uvicorn.run('main:app2', host="127.0.0.1", port=8011, log_level="info", reload=True)
+    uvicorn.run('main:app', host="127.0.0.1", port=8011, log_level="info", reload=True)
 
