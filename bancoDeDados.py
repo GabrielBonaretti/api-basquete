@@ -21,6 +21,7 @@
 
 import sqlite3
 import json
+from models import League
 
 def conectar():
     connection = sqlite3.connect('psqlite3.db')
@@ -45,6 +46,8 @@ def conectar():
 def desconectar(connection, cursor):
     cursor.close()
     connection.close()
+
+# SELECT
 
 def listar_times():
     connection = conectar()
@@ -92,22 +95,35 @@ def listar_ligas():
     desconectar(connection, cursor)
     return ligas
 
-# def inserir_time():
-#     connection = conectar()
-#     cursor = connection.cursor()
+def listar_times_liga(search, type_search):
+    connection = conectar()
+    cursor = connection.cursor()
 
-#     nome = input("Informe o nome do time: ")
-#     liga_id = int(input("Informe o ID da liga: "))
+    if type_search == 'id':
+        cursor.execute(f'SELECT * FROM times_de_basquete WHERE liga_id == {search}')
+        times_liga = cursor.fetchall()
+    elif type_search == 'name':
+        cursor.execute(f"""
+                       SELECT DISTINCT t.liga_id, t.nome 
+                       FROM times_de_basquete as t 
+                       INNER JOIN ligas_de_basquete as l
+                       ON (t.liga_id == l.id)
+                       WHERE l.nome LIKE '%{search}%'
+                       """)
+        times_liga = cursor.fetchall()
 
-#     cursor.execute(f"INSERT INTO times_de_basquete (liga_id, nome) VALUES ({liga_id}, '{nome}');")
-#     connection.commit()
+    desconectar(connection, cursor)
 
-#     if cursor.rowcount == 1:
-#         print("O time foi inserido no banco de dados.")
-#     else:
-#         print("O time não foi inserido no banco de dados.")
+    return times_liga
 
-#     desconectar(connection, cursor)
+# INSERT
+
+def inserir_time(league: League):
+    connection = conectar()
+    cursor = connection.cursor()
+    cursor.execute(f"INSERT INTO ligas_de_basquete (nome) VALUES ('{league.nome}');")
+    connection.commit()
+    desconectar(connection, cursor)
 
 # def inserir_liga():
 #     connection = conectar()

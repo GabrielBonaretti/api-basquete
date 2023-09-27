@@ -1,11 +1,11 @@
 import json
-from models import Team
+from models import Team, League
 from request import Request
 from fastapi import FastAPI, HTTPException, status, Response, Path
 from typing import Optional
 import requests
 
-from bancoDeDados import listar_times, buscar_id, buscar_nome, listar_ligas
+from bancoDeDados import listar_times, buscar_id, buscar_nome, listar_ligas, listar_times_liga, inserir_time
 
 # create app FASTAPI
 app2 = FastAPI()
@@ -16,7 +16,6 @@ PREFIX_API_FUTEBOL: str = '/api/v1/futebol'
 # Teams
 
 # GET
-
 
 @app2.get(PREFIX_API_BASQUETE + "/teams")
 async def get_all_teams():
@@ -122,6 +121,7 @@ async def get_all_teams_futebol():
     teams = response.json()
     return teams
 
+
 # Legues
 
 # GET
@@ -161,22 +161,55 @@ async def get_league_name(league_name: str):
     
     raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail='League not found!')
 
+
 @app2.get(PREFIX_API_BASQUETE + "/league/teams")
 async def get_league_name(league_id: Optional[str] = None, league_name: Optional[str] = None):
     if league_id == None and league_name == None:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail='The two query are empty!')
     
     if league_id != None:
-        ...
+        lista_times = listar_times_liga(league_id, 'id')
     elif league_name != None:
-        ...
-    # if leagues_name != None and leagues_name != []:
-    #     return list(leagues_name)
+        lista_times = listar_times_liga(league_name, 'name')
+
+    if lista_times == []:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail='League not found!')
+
+    return lista_times
     
-    # raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail='League not found!')
+# POST
+
+@app2.post(PREFIX_API_BASQUETE + "/league/add")
+async def post_team(league: League):
+    '''
+    Create a new team with the name and league model. And the key is all teams plus 1
+    '''
+
+    if league:
+        inserir_time(league)
+        return Response(status_code=status.HTTP_201_CREATED)
+    else:
+        raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail=f'The team with id {id} already exists!')
+
+
+# PUT
+
+@app2.put(PREFIX_API_BASQUETE + '/league/change')
+async def put_league(league: League, league_id: Optional[str] = None, league_name: Optional[str] = None):
+    '''
+    Update the league body according to the league and league model, and the id, passed through the parameter
+    '''
+    if league and league_id:
+        return league
+    elif league and league_name:
+        return league
+    else:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail=f'league not found!')
+
 
 
 if __name__ == '__main__':
     import uvicorn
-    uvicorn.run('main:app2', host="127.0.0.1", port=8001, log_level="info", reload=True)
+    uvicorn.run('main:app2', host="127.0.0.1", port=8011, log_level="info", reload=True)
 
