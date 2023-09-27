@@ -1,10 +1,5 @@
 from fastapi import HTTPException, status
 import requests
-import json
-
-with open('db.json') as db:
-    teams = json.load(db)
-
 
 class Request:
     def __init__(self):
