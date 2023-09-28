@@ -1,4 +1,3 @@
-from fastapi import HTTPException, status
 import requests
 
 class Request:
@@ -9,6 +8,10 @@ class Request:
         }
 
     def getTeamInformation(self, endpoint, query_string):
+        """
+        Pegas as informações do time da api de basquete externa.
+        Por que para o próximo request eu preciso de algumas informações
+        """
         try:
             response = requests.get(
                 endpoint,
@@ -32,6 +35,9 @@ class Request:
             ...
 
     def getAnalyticsTeam(self, endpoint, query_string):
+        """
+        Busca os dados das analizes da api externa
+        """
         try:
             response = requests.get(
                 endpoint,
@@ -40,7 +46,8 @@ class Request:
             )
 
             response_json = response.json()["response"]
-
+            
+            # desestrutura o retorno da api e ajeito do jeito que eu quero para o return
             id_team = response_json["team"]["id"]
             name_team = response_json["team"]["name"]
 

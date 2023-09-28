@@ -3,6 +3,7 @@ from request import Request
 from fastapi import HTTPException, Response, status, APIRouter
 from typing import Optional
 import requests
+import json
 
 from bancoDeDados import listar_times, buscar, delete, inserir_time, upadate_times
 
@@ -20,11 +21,25 @@ async def get_all_teams():
     '''
     lista_times = listar_times()
 
-    return lista_times
+    lista_json = []
+
+    for item in lista_times:
+        item_json = {
+            "id": item[0],
+            "liga_id": item[1],
+            "nome": item[2],
+        }
+
+        lista_json.append(item_json)
+    
+    return lista_json
 
 
-@router.get(PREFIX_API_BASQUETE + "/teams/search/", tags=['teams'])
+@router.get(PREFIX_API_BASQUETE + "/teams/specific", tags=['teams'])
 async def get_team(team_id: Optional[str] = None, team_name: Optional[str] = None):
+    """
+    
+    """
 
     if team_id:
         team = buscar(id=team_id, table='times_de_basquete')
@@ -34,7 +49,20 @@ async def get_team(team_id: Optional[str] = None, team_name: Optional[str] = Non
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail='The two fields query are empty')
 
     if team != None or team != []:
-        return team
+
+        lista_json = []
+
+        for item in team:
+            item_json = {
+                "id": item[0],
+                "liga_id": item[1],
+                "nome": item[2],
+            }
+
+            lista_json.append(item_json)
+        
+        return lista_json
+
     
     raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail='Team not found!')
 
@@ -107,7 +135,7 @@ async def get_all_teams_futebol():
 # POST
 
 
-@router.post(PREFIX_API_BASQUETE + "/teams/add", tags=['teams'])
+@router.post(PREFIX_API_BASQUETE + "/teams", tags=['teams'])
 async def post_team(team: Team):
     '''
     Create a new team with the name and league model. And the key is all teams plus 1
@@ -123,7 +151,7 @@ async def post_team(team: Team):
 # PUT
 
 
-@router.put(PREFIX_API_BASQUETE + '/teams/change', tags=['teams'])
+@router.put(PREFIX_API_BASQUETE + '/teams', tags=['teams'])
 async def put_team(team: Team):
     '''
     Update the league body according to the league and league model, and the id, passed through the parameter
@@ -138,7 +166,7 @@ async def put_team(team: Team):
 # DELETE
 
 
-@router.delete(PREFIX_API_BASQUETE + '/teams/remove', tags=['teams'])
+@router.delete(PREFIX_API_BASQUETE + '/teams', tags=['teams'])
 async def del_team(team_id: int):
     '''
     Update the league body according to the league and league model, and the id, passed through the parameter

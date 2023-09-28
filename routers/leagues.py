@@ -16,12 +16,28 @@ PREFIX_API_FUTEBOL: str = '/api/v1/futebol'
 
 @router.get(PREFIX_API_BASQUETE + "/leagues", tags=['leagues'])
 async def get_all_leagues():
+    '''
+    getting all leagues in database
+    '''
+
+    # get in database
     lista_ligas = listar_ligas()
 
-    return lista_ligas
+    # transform to json list
+    lista_json = []
+
+    for item in lista_ligas:
+        item_json = {
+            "id": item[0],
+            "nome": item[1],
+        }
+
+        lista_json.append(item_json)
+    
+    return lista_json
 
 
-@router.get(PREFIX_API_BASQUETE + "/leagues/search/", tags=['leagues'])
+@router.get(PREFIX_API_BASQUETE + "/leagues/specific", tags=['leagues'])
 async def get_league(league_id: Optional[str] = None, league_name: Optional[str] = None):
     if league_id:
         league = buscar(id=league_id, table='ligas_de_basquete')
@@ -31,7 +47,17 @@ async def get_league(league_id: Optional[str] = None, league_name: Optional[str]
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail='The two fields query are empty')
 
     if league != None or league != []:
-        return league
+        lista_json = []
+
+        for item in league:
+            item_json = {
+                "id": item[0],
+                "nome": item[1],
+            }
+
+            lista_json.append(item_json)
+        
+        return lista_json
     
     raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail='League not found!')
 
@@ -49,11 +75,22 @@ async def get_league_name(league_id: Optional[str] = None, league_name: Optional
     if lista_times == []:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail='League not found!')
 
-    return lista_times
+    lista_json = []
+
+    for item in lista_times:
+        item_json = {
+            "id": item[0],
+            "nome": item[1],
+        }
+
+        lista_json.append(item_json)
+    
+    return lista_json
+
     
 # POST
 
-@router.post(PREFIX_API_BASQUETE + "/leagues/add", tags=['leagues'])
+@router.post(PREFIX_API_BASQUETE + "/leagues", tags=['leagues'])
 async def post_league(league: League):
     create = inserir_liga(league)
     
@@ -65,7 +102,7 @@ async def post_league(league: League):
 
 # PUT
 
-@router.put(PREFIX_API_BASQUETE + '/leagues/change', tags=['leagues'])
+@router.put(PREFIX_API_BASQUETE + '/leagues', tags=['leagues'])
 async def put_league(league: League):
     update = upadate_ligas(league)
 
@@ -76,7 +113,7 @@ async def put_league(league: League):
 
 # DELETE
 
-@router.delete(PREFIX_API_BASQUETE + '/leagues/remove', tags=['leagues'])
+@router.delete(PREFIX_API_BASQUETE + '/leagues', tags=['leagues'])
 async def del_league(league_id: int):
     deleted = delete(table='ligas_de_basquete', id=league_id)
     

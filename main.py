@@ -16,10 +16,11 @@ tags_metadata = [
 # create app FASTAPI
 app = FastAPI(openapi_tags=tags_metadata)
 
+# including routes in app
 app.include_router(router_teams)
 app.include_router(router_leagues)
 
 if __name__ == '__main__':
     import uvicorn
-    uvicorn.run('main:app', host="127.0.0.1", port=8011, log_level="info", reload=True)
+    uvicorn.run('main:app', host="0.0.0.0", port=8011, log_level="info", reload=True)
 
