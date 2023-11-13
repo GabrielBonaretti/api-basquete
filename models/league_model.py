@@ -12,4 +12,10 @@ class LeagueModel(settings.DBBaseModel):
     id: int = Column(Integer, primary_key=True, autoincrement=True)
     name: str = Column(String(255))
 
-    teams: Mapped[List["TeamModel"]] = relationship()
+    teams = relationship(
+        "TeamModel",
+        cascade="all,delete-orphan",
+        # back_populates="league",
+        uselist=True,
+        lazy="joined"
+    )

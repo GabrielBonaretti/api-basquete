@@ -4,9 +4,9 @@ from sqlalchemy.ext.asyncio import AsyncEngine
 from sqlalchemy.ext.asyncio import AsyncSession
 from core.configs import settings
 
-import sys
-default_path = r"C:\\Users\\ct67ca\\Desktop\\base-fastapi"
-sys.path.append(default_path)
+# import sys
+# default_path = r"C:\\Users\\ct67ca\\Desktop\\base-fastapi"
+# sys.path.append(default_path)
 
 engine: AsyncEngine = create_async_engine(settings.DB_URL)
 

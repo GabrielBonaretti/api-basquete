@@ -7,7 +7,8 @@ class TeamModel(settings.DBBaseModel):
     id: Mapped[int] = Column(Integer, primary_key=True, autoincrement=True)
 
     # foreginkey
-    league_id: Mapped[int] = Column(ForeignKey("leagues.id"))
+    league_id: int = Column(Integer, ForeignKey('leagues.id'))
+    # league = relationship("LeagueModel", back_populates='teams', lazy='joined')
 
     name: str = Column(String(255))
 

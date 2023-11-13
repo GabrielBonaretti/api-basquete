@@ -6,7 +6,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
 
 from models.league_model import LeagueModel
-from schemas.league_schema import LeagueSchema
+from schemas.league_schema import LeagueSchema, LeagueRelationshipSchema
 from core.deps import get_session
 
 router = APIRouter()
@@ -17,7 +17,7 @@ async def get_leagues(db: AsyncSession = Depends(get_session)):
     async with db as session:
         query = select(LeagueModel)
         result = await session.execute(query)
-        leagues: List[LeagueModel] = result.scalars().all()
+        leagues: List[LeagueSchema] = result.scalars().unique().all()
 
         if len(leagues) > 0:
             return leagues
@@ -37,12 +37,12 @@ async def post_league(league: LeagueSchema, db: AsyncSession = Depends(get_sessi
     return new_league
 
 
-@router.get("/search", response_model=List[LeagueSchema], status_code=status.HTTP_200_OK)
+@router.get("/search", response_model=List[LeagueRelationshipSchema], status_code=status.HTTP_200_OK)
 async def search_league(league_name: str, db: AsyncSession = Depends(get_session)):
     async with db as session:
         query = select(LeagueModel).filter(LeagueModel.name.like(f"%{league_name}%"))
         result = await session.execute(query)
-        leagues: List[LeagueModel] = result.scalars().all()
+        leagues: List[LeagueRelationshipSchema] = result.scalars().unique().all()
         
         if leagues:
             return leagues
@@ -50,12 +50,12 @@ async def search_league(league_name: str, db: AsyncSession = Depends(get_session
             raise(HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="League not found!"))
 
 
-@router.get("/{league_id}", response_model=LeagueSchema, status_code=status.HTTP_200_OK)
+@router.get("/{league_id}", response_model=LeagueRelationshipSchema, status_code=status.HTTP_200_OK)
 async def get_league(league_id: int,  db: AsyncSession = Depends(get_session)):
     async with db as session:
         query = select(LeagueModel).filter(LeagueModel.id == int(league_id))
         result = await session.execute(query)
-        league = result.scalar_one_or_none()
+        league = result.scalars().unique().one_or_none()
 
         if league:
             return league
