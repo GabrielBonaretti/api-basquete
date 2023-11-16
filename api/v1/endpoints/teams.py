@@ -9,6 +9,8 @@ from models.team_model import TeamModel
 from schemas.team_schema import TeamSchema
 from core.deps import get_session
 
+from utils.request import Request
+
 router = APIRouter()
 
 
@@ -93,3 +95,66 @@ async def delete_team(team_id: int, db: AsyncSession = Depends(get_session)):
         else:
             raise(HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="team not found!"))
         
+        
+@router.get("/teams/analytics/", status_code=status.HTTP_200_OK)
+async def get_analytics(team_name: str, season: str, db: AsyncSession = Depends(get_session)):
+    '''
+    from the "league_name" and "season" parameters. This function takes data from a team in a season. 
+    This is done in 3 steps. 
+        1st: It checks if the team requested in the parameter is in the json file, if it doesn't have it, it returns 404. 
+        2nd: If it does, it consumes a basketball api that returns the id of the league the team plays in and the id of the team researched. 
+        3rd: With the information from the previous request, it makes another request to discover the team's data for the specific season.
+    Finally, it returns a json with all the team's data.
+
+    *requests are separated into a class, which has the request header as attributes. And there are two methods, one for each request*
+    '''
+
+    async with db as session:
+        query = select(TeamModel).filter(TeamModel.name.like(f"%{team_name}%"))
+        result = await session.execute(query)
+        teams: List[TeamSchema] = result.scalars().all()
+        
+        if not teams:
+            raise(HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="team not found!"))       
+        
+        
+        team_name = teams[0].name
+        
+        params = {"search": team_name}
+        
+        try:
+            # creates the request object
+            request_team = Request()
+
+            # returns the request times values
+            team = request_team.getTeamInformation(
+                endpoint="https://api-basketball.p.rapidapi.com/teams",
+                query_string=params
+            )
+
+            print(team)
+            
+            if not team:
+                raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail='This team dont have analytics!')
+            
+            # set the queries to the second request
+            params_statistics = {
+                "season": season,
+                "league": team["id_legue"],
+                "team": team["id_team"]
+            }
+
+            # returns the request times statics value
+            statistics = request_team.getAnalyticsTeam(
+                endpoint="https://api-basketball.p.rapidapi.com/statistics",
+                query_string=params_statistics
+            )
+
+            if statistics == None or statistics["league"]["id"] == None:
+                raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail='Season not found!')
+
+            return {"message": statistics}
+
+        except KeyError:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND, detail='Team not found!')
